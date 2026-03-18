@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
 
   # ── Databases ──────────────────────────────────────────────────────
@@ -56,45 +58,62 @@ services:
   auth-service:
     build: ./auth-service
     environment:
-      DATABASE_URL:         postgres://admin:secret123@auth-db:5432/authdb
-      JWT_SECRET:           ${JWT_SECRET:-dev-shared-secret}
-      JWT_EXPIRES:          1h
-      PORT:                 3001
-      NODE_ENV:             development
+      DB_HOST: auth-db
+      DB_PORT: 5432
+      DB_NAME: authdb
+      DB_USER: admin
+      DB_PASSWORD: secret123
+      JWT_SECRET: ${JWT_SECRET:-dev-shared-secret}
+      JWT_EXPIRES: 1h
+      PORT: 3001
+      NODE_ENV: development
       ACTIVITY_SERVICE_URL: http://activity-service:3003
     ports:
       - "3001:3001"
     depends_on:
-      auth-db:      { condition: service_healthy }
-      activity-service: { condition: service_started }
+      auth-db:
+        condition: service_healthy
+      activity-service:
+        condition: service_started
     restart: unless-stopped
 
   task-service:
     build: ./task-service
     environment:
-      DATABASE_URL:         postgres://admin:secret123@task-db:5432/taskdb
-      JWT_SECRET:           ${JWT_SECRET:-dev-shared-secret}
-      PORT:                 3002
-      NODE_ENV:             development
+      DB_HOST: task-db
+      DB_PORT: 5432
+      DB_NAME: taskdb
+      DB_USER: admin
+      DB_PASSWORD: secret123
+      JWT_SECRET: ${JWT_SECRET:-dev-shared-secret}
+      PORT: 3002
+      NODE_ENV: development
       ACTIVITY_SERVICE_URL: http://activity-service:3003
     ports:
       - "3002:3002"
     depends_on:
-      task-db:          { condition: service_healthy }
-      activity-service: { condition: service_started }
+      task-db:
+        condition: service_healthy
+      activity-service:
+        condition: service_started
     restart: unless-stopped
 
   activity-service:
     build: ./activity-service
     environment:
-      DATABASE_URL: postgres://admin:secret123@activity-db:5432/activitydb
-      JWT_SECRET:   ${JWT_SECRET:-dev-shared-secret}
-      PORT:         3003
-      NODE_ENV:     development
+      DB_HOST: activity-db
+      DB_PORT: 5432
+      DB_NAME: activitydb
+      DB_USER: admin
+      DB_PASSWORD: secret123
+      JWT_SECRET: ${JWT_SECRET:-dev-shared-secret}
+      PORT: 3003
+      NODE_ENV: development
     ports:
       - "3003:3003"
     depends_on:
-      activity-db: { condition: service_healthy }
+      activity-db:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
