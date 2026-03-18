@@ -1,0 +1,66 @@
+version: "3.9"
+
+services:
+
+  auth-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: authdb
+    volumes:
+      - ./auth-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"
+
+  task-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: taskdb
+    volumes:
+      - ./task-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5434:5432"
+
+  activity-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: activitydb
+    volumes:
+      - ./activity-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5435:5432"
+
+  auth-service:
+    build: ./auth-service
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@auth-db:5432/authdb
+      JWT_SECRET: supersecret
+    ports:
+      - "3001:3001"
+    depends_on:
+      - auth-db
+
+  task-service:
+    build: ./task-service
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@task-db:5432/taskdb
+      JWT_SECRET: supersecret
+      ACTIVITY_SERVICE_URL: http://activity-service:3003
+    ports:
+      - "3002:3002"
+    depends_on:
+      - task-db
+
+  activity-service:
+    build: ./activity-service
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@activity-db:5432/activitydb
+    ports:
+      - "3003:3003"
+    depends_on:
+      - activity-db
