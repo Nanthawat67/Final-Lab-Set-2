@@ -1,4 +1,4 @@
-const { pool } = require('./db/db');
+const { pool } = require('./src/db/db');
 
 pool.query('SELECT 1')
   .then(() => console.log('✅ DB connected!'))

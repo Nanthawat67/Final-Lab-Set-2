@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 Task Board — Sec2 Set 2</title>
+    <script src="config.js"></script>
+    <style>
+        /* ... (CSS ส่วนเดิมคงไว้ทั้งหมดเพื่อความสวยงาม) ... */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface2: #273448;
+            --border: #334155;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --blue: #3b82f6;
+            --blue2: #2563eb;
+            --green: #22c55e;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+            --purple: #a855f7;
+            --radius: 10px;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        button {
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .15s;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #auth-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1.5rem;
+        }
+
+        .auth-box {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+        }
+
+        .auth-tabs {
+            display: flex;
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 1.5rem;
+            gap: 4px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: .6rem;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--muted);
+            font-size: .9rem;
+            font-weight: 500;
+        }
+
+        .auth-tab.active {
+            background: var(--blue);
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--muted);
+            font-size: .85rem;
+            margin-bottom: .4rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: .75rem 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: .85rem;
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: .5rem;
+        }
+
+        #app-page {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-logo {
+            padding: 1.25rem 1.5rem;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: .75rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .65rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--muted);
+            font-size: .9rem;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-item:hover {
+            background: var(--surface2);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            background: rgba(59, 130, 246, .15);
+            color: var(--blue);
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface);
+        }
+
+        .page-body {
+            padding: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+        }
+
+        .task-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+        }
+
+        .chip {
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: .72rem;
+            font-weight: 600;
+        }
+
+        .chip-owner {
+            background: rgba(168, 85, 247, .15);
+            color: #c4b5fd;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: var(--surface);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 500px;
+            padding: 1.5rem;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, .3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin .6s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="auth-page">
+        <div class="auth-box">
+            <div class="auth-logo">🔐</div>
+            <div class="auth-title">Task Board</div>
+            <div class="auth-subtitle">Sec2 — Task Management</div>
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchTab('login')">Login</button>
+                <button class="auth-tab" onclick="switchTab('register')">Register</button>
+            </div>
+            <div id="login-form">
+                <div class="form-group"><label>Email</label><input id="login-email" type="email"
+                        placeholder="you@example.com"></div>
+                <div class="form-group"><label>Password</label><input id="login-password" type="password"
+                        placeholder="password"></div>
+                <button class="btn-primary" onclick="doLogin()">เข้าสู่ระบบ</button>
+            </div>
+            <div id="register-form" class="hidden">
+                <div class="form-group"><label>Username</label><input id="reg-name" type="text"
+                        placeholder="ชื่อผู้ใช้"></div>
+                <div class="form-group"><label>Email</label><input id="reg-email" type="email"
+                        placeholder="you@example.com"></div>
+                <div class="form-group"><label>Password</label><input id="reg-password" type="password"
+                        placeholder="password"></div>
+                <button class="btn-primary" onclick="doRegister()">สมัครสมาชิก</button>
+            </div>
+            <div id="auth-msg"></div>
+        </div>
+    </div>
+
+    <div id="app-page" class="hidden">
+        <nav class="sidebar">
+            <div class="sidebar-logo">📋 Task Board</div>
+            <div class="sidebar-nav">
+                <button class="nav-item active" data-page="tasks" onclick="showPage('tasks')">
+                    <span class="nav-icon">✅</span> Tasks
+                    <span class="badge-count" id="task-count">0</span>
+                </button>
+                <a href="activity.html" target="_blank" class="nav-item" style="text-decoration:none">
+                    <span class="nav-icon">📅</span> Activity Timeline
+                    <span style="margin-left:auto;font-size:.7rem;color:var(--muted)">↗</span>
+                </a>
+            </div>
+            <div class="sidebar-footer" style="padding:1rem; border-top:1px solid var(--border)">
+                <div class="user-chip" style="display:flex; align-items:center; gap:0.5rem">
+                    <div id="sidebar-avatar"
+                        style="width:32px; height:32px; background:var(--blue); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold">
+                        ?</div>
+                    <div style="flex:1; min-width:0">
+                        <div id="sidebar-name"
+                            style="font-size:0.85rem; font-weight:600; overflow:hidden; text-overflow:ellipsis">User
+                        </div>
+                        <span id="sidebar-role-badge" class="role-badge"
+                            style="font-size:0.7rem; padding:1px 4px; border-radius:4px">role</span>
+                    </div>
+                    <button onclick="doLogout()" style="background:none; border:none; color:var(--muted)">✕</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="main-content">
+            <div id="page-tasks">
+                <div class="page-header">
+                    <div class="page-title">✅ Tasks</div>
+                    <button class="btn-add" onclick="openCreateModal()"
+                        style="padding:0.5rem 1rem; background:var(--blue); border:none; border-radius:8px; color:white">+
+                        สร้าง Task</button>
+                </div>
+                <div class="page-body">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div>
+                                <div class="stat-value" id="st-total">0</div>
+                                <div class="stat-label">ทั้งหมด</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div>
+                                <div class="stat-value" id="st-todo">0</div>
+                                <div class="stat-label">TODO</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div>
+                                <div class="stat-value" id="st-inprog">0</div>
+                                <div class="stat-label">In Progress</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div>
+                                <div class="stat-value" id="st-done">0</div>
+                                <div class="stat-label">Done</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-list" id="task-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="task-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <h3 id="modal-title">Task</h3>
+            <input type="hidden" id="modal-task-id">
+            <div class="form-group"><label>หัวข้อ</label><input id="modal-task-title"></div>
+            <div class="form-group"><label>รายละเอียด</label><input id="modal-task-desc"></div>
+            <div class="form-group">
+                <label>สถานะ</label>
+                <select id="modal-task-status"
+                    style="width:100%; padding:0.5rem; background:var(--bg); color:white; border:1px solid var(--border)">
+                    <option value="TODO">TODO</option>
+                    <option value="IN_PROGRESS">IN_PROGRESS</option>
+                    <option value="DONE">DONE</option>
+                </select>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1rem">
+                <button onclick="closeModal()">ยกเลิก</button>
+                <button id="modal-submit-btn" onclick="submitTask()"
+                    style="background:var(--blue); color:white; border:none; padding:0.5rem 1rem; border-radius:4px">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* 1. ตั้งค่าตัวแปร URL จาก config.js */
+        const AUTH = window.APP_CONFIG.AUTH_URL;
+        const TASK = window.APP_CONFIG.TASK_URL;
+        const ACTIVITY = window.APP_CONFIG.ACTIVITY_URL;
+
+        let currentUser = null;
+        let token = localStorage.getItem('jwt_token');
+        let allTasks = [];
+
+        function authHeaders() {
+            return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+        }
+
+        /* 4. doLogin() — แก้ URL */
+        async function doLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            const res = await fetch(`${AUTH}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                token = data.token;
+                localStorage.setItem('jwt_token', token);
+                initApp(data.user);
+            } else {
+                alert(data.error || 'Login ล้มเหลว');
+            }
+        }
+
+        /* 3. doRegister() — แก้ name เป็น username และ Login ต่อทันที */
+        async function doRegister() {
+            const username = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+
+            const res = await fetch(`${AUTH}/api/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password })
+            });
+
+            if (res.ok) {
+                // Register สำเร็จ ให้ Login ต่อทันทีเพื่อเอา Token
+                const loginRes = await fetch(`${AUTH}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const loginData = await loginRes.json();
+                if (loginRes.ok) {
+                    token = loginData.token;
+                    localStorage.setItem('jwt_token', token);
+                    initApp(loginData.user);
+                }
+            } else {
+                const data = await res.json();
+                alert(data.error || 'สมัครไม่สำเร็จ');
+            }
+        }
+
+        /* 5. initApp() — ลบ Profile tab, แก้ .name -> .username */
+        function initApp(user) {
+            currentUser = user;
+            document.getElementById('auth-page').classList.add('hidden');
+            document.getElementById('app-page').classList.remove('hidden');
+
+            const nameDisp = user.username || user.email || '?';
+            document.getElementById('sidebar-avatar').textContent = nameDisp.charAt(0).toUpperCase();
+            document.getElementById('sidebar-name').textContent = nameDisp;
+
+            const rb = document.getElementById('sidebar-role-badge');
+            rb.textContent = user.role;
+            rb.style.background = user.role === 'admin' ? 'var(--purple)' : 'var(--blue)';
+
+            showPage('tasks');
+        }
+
+        /* 6. showPage() — เหลือแค่ tasks */
+        function showPage(page) {
+            document.getElementById('page-tasks').classList.toggle('hidden', page !== 'tasks');
+            if (page === 'tasks') loadTasks();
+        }
+
+        /* 7. Tasks API — แก้ URL prefix เป็น TASK */
+        async function loadTasks() {
+            const res = await fetch(`${TASK}/api/tasks`, { headers: authHeaders() });
+            const data = await res.json();
+            if (res.ok) {
+                allTasks = data.tasks || [];
+                renderTasks();
+                updateStats();
+            }
+        }
+
+        async function submitTask() {
+            const id = document.getElementById('modal-task-id').value;
+            const body = {
+                title: document.getElementById('modal-task-title').value,
+                description: document.getElementById('modal-task-desc').value,
+                status: document.getElementById('modal-task-status').value
+            };
+
+            const url = id ? `${TASK}/api/tasks/${id}` : `${TASK}/api/tasks`;
+            const method = id ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method: method,
+                headers: authHeaders(),
+                body: JSON.stringify(body)
+            });
+
+            if (res.ok) {
+                closeModal();
+                loadTasks();
+            }
+        }
+
+        /* 8. renderTasks() — แก้ field เจ้าของ task (t.username) */
+        function renderTasks() {
+            const list = document.getElementById('task-list');
+            list.innerHTML = allTasks.map(t => `
+    <div class="task-card">
+      <div style="display:flex; justify-content:space-between">
+        <strong>${t.title}</strong>
+        <div>
+            <button onclick="openEditModal(${t.id})">✏️</button>
+            <button onclick="deleteTask(${t.id})">🗑️</button>
+        </div>
+      </div>
+      <p style="font-size:0.8rem; color:var(--muted)">${t.description || ''}</p>
+      <div style="margin-top:0.5rem; display:flex; gap:0.5rem; align-items:center">
+        <span class="chip">${t.status}</span>
+        <span class="chip chip-owner">👤 ${t.username || t.user_id || '?'}</span>
+      </div>
+    </div>
+  `).join('');
+        }
+
+        async function deleteTask(id) {
+            if (!confirm('ลบ Task นี้?')) return;
+            const res = await fetch(`${TASK}/api/tasks/${id}`, {
+                method: 'DELETE',
+                headers: authHeaders()
+            });
+            if (res.ok) loadTasks();
+        }
+
+        function updateStats() {
+            document.getElementById('st-total').textContent = allTasks.length;
+            document.getElementById('st-todo').textContent = allTasks.filter(t => t.status === 'TODO').length;
+            document.getElementById('st-inprog').textContent = allTasks.filter(t => t.status === 'IN_PROGRESS').length;
+            document.getElementById('st-done').textContent = allTasks.filter(t => t.status === 'DONE').length;
+        }
+
+        function doLogout() {
+            localStorage.removeItem('jwt_token');
+            location.reload();
+        }
+
+        /* 9. Auto-login — แก้ URL เป็น /verify */
+        if (token) {
+            (async () => {
+                try {
+                    const res = await fetch(`${AUTH}/api/auth/verify`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        initApp(data.user);
+                    } else {
+                        localStorage.removeItem('jwt_token');
+                    }
+                } catch (e) {
+                    console.error("Auth failed");
+                }
+            })();
+        }
+
+        function switchTab(tab) {
+            document.getElementById('login-form').classList.toggle('hidden', tab !== 'login');
+            document.getElementById('register-form').classList.toggle('hidden', tab !== 'register');
+        }
+
+        function openCreateModal() {
+            document.getElementById('modal-task-id').value = '';
+            document.getElementById('modal-task-title').value = '';
+            document.getElementById('modal-task-desc').value = '';
+            document.getElementById('task-modal').classList.remove('hidden');
+        }
+
+        function openEditModal(id) {
+            const t = allTasks.find(x => x.id === id);
+            if (!t) return;
+            document.getElementById('modal-task-id').value = t.id;
+            document.getElementById('modal-task-title').value = t.title;
+            document.getElementById('modal-task-desc').value = t.description;
+            document.getElementById('modal-task-status').value = t.status;
+            document.getElementById('task-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('task-modal').classList.add('hidden');
+        }
+    </script>
+</body>
+
+</html>

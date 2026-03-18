@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { pool } = require('../db/db');  // ถ้า src/index.js อยู่ใน src/
+const { pool } = require('./db/db');  // ถ้า src/index.js อยู่ใน src/
 const authRouter = require('./routes/auth');
 
 const app = express();
